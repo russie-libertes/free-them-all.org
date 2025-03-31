@@ -1,0 +1,31 @@
+.modal-dialog-slide-left {
+  margin: 0;
+  position: fixed;
+  left: 0;
+  width: 30%;
+  max-width: 400px;
+  height: 100%;
+}
+
+.modal-dialog-slide-right {
+  margin: 0;
+  position: fixed;
+  right: 0;
+  width: 30%;
+  max-width: 400px;
+  height: 100%;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+.sidebar {
+  height: calc(100vh - 120px);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
