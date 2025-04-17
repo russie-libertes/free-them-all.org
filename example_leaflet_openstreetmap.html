@@ -1,0 +1,147 @@
+<html><body>
+
+
+<link href="https://tile.openstreetmap.org/{z}/{x}/{y}.png" id="link_tiles" />
+
+<!--
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+   integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+   crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+   integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+   crossorigin=""></script>
+-->
+<link rel="stylesheet" href="leaflet.css" />
+<script src="leaflet.js"></script>
+
+<a hidden target="_blank" id="map_copyright" href="https://osm.org/copyright">map &copy; OpenStreetMap</a>
+
+
+<style>
+.markerhighlighted
+{
+    fill: hsl(240, 87%, 18%) !important;
+}
+.markerupcoming
+{
+    fill: hsl(230, 69%, 50%);
+    fill-opacity: 1.0;
+}
+
+.markerpast
+{
+    fill: hsl(215, 59%, 53%);
+    fill-opacity: 1.0;
+}
+
+#map
+{
+    height: 200px; 
+    width: 800px; 
+}
+
+</style>
+
+    
+
+<div id="map">
+    <template id="popup">
+        <div>
+            <h3 id="place_name"></h3>
+            <h4 id="place_date"></h4>
+        </div>
+    </template>
+</div>
+
+<ul id="allevents">
+
+<li><a class="event" href="#" onclick="return navigate(event);" data-latlon="48.866221,2.2676798" data-country="France" data-city="Paris" data-mapmarkerkey="france-paris-1" data-date="2024/03/17" data-time="08:00">Ambassade de la Fédération de Russie en France, 40-50 Bd Lannes, 75116, Paris, France</a></li>
+
+<li><a class="event" href="#" onclick="return navigate(event);" data-latlon="52.5161444,13.3789226" data-country="Germany" data-city="Berlin" data-mapmarkerkey="germany-berlin-1" data-date="2024/03/17" data-time="08:00">Botschaft der Russischen Föderation, Unter den Linden 63-65, 10117 Berlin, Germany</a></li>
+</ul>
+
+<script>
+
+map = null;
+
+function init_and_populate_map(id, events)
+{
+    map = L.map(id);
+    L.tileLayer(decodeURI(document.getElementById('link_tiles').href), {attribution: document.getElementById('map_copyright').outerHTML.replace('hidden', ''), maxZoom: 19 }).addTo(map);
+    map.on('popupopen', e =>
+    {
+        e.popup._closeButton.removeAttribute("href");
+        e.popup._closeButton.style.cursor = "pointer";
+    });
+
+    let mapmarkers = {map : map};
+    const markers = [];
+    for(const a of events)
+    {
+        if(a.dataset.mapmarkerkey in mapmarkers)
+            continue;
+
+        const latlon = a.dataset.latlon.split(',').map(parseFloat);
+        const marker = L.circleMarker(latlon, {radius: 5, stroke: false, className: a.parentElement.classList.contains('eventactive') ? 'markerupcoming' : 'markerpast'}).addTo(map);
+        marker.bindPopup(format_event_popup(a).outerHTML);
+        marker.on('click', marker_onclick);
+
+        marker.eventhash = a.dataset.eventhash;
+        marker.mapmarkerkey = a.dataset.mapmarkerkey;
+        mapmarkers[a.dataset.mapmarkerkey] = marker;
+        markers.push(marker);
+    }
+
+    const quantiles = (arr, p) => arr.sort((a, b) => a - b) && [arr[Math.floor(p * arr.length)], arr[Math.floor((1 - p) * arr.length)]];
+    
+    const [latl, latr] = quantiles(markers.map(marker => marker.getLatLng().lat), 0.1);
+    const [lonl, lonr] = quantiles(markers.map(marker => marker.getLatLng().lng), 0.1);
+    
+    const markers_within = markers.filter(marker => latl <= marker.getLatLng().lat && marker.getLatLng().lat <= latr && lonl <= marker.getLatLng().lng && marker.getLatLng().lng <= lonr);
+    const markers_within_keys = markers_within.map(marker => marker.mapmarkerkey);
+    
+    map.fitBounds(L.latLngBounds( markers_within.map(marker => ([marker.getLatLng().lat, marker.getLatLng().lng])) ));
+    
+    //map.setView([20, 0], 2);
+
+    return [mapmarkers, markers_within_keys];
+}
+
+function format_event_popup(a)
+{
+    const elem = document.getElementById('popup').content.cloneNode(true);
+    elem.querySelector('#place_name').innerText = [a.dataset.city, a.dataset.country].filter(s => s != '').join(', ');
+    elem.querySelector('#place_date').innerText = [a.dataset.date, a.dataset.time].filter(s => s != '').join(', ');
+    return elem.firstElementChild;
+}
+
+function marker_onclick(e)
+{
+    const marker = e.target;
+    let _icon = document.querySelector('.markerhighlighted');
+    if(_icon != null)
+        L.DomUtil.removeClass(_icon, 'markerhighlighted');
+
+    _icon = marker._icon || marker._path;
+    if(_icon != null)
+        L.DomUtil.addClass(_icon, 'markerhighlighted');
+    
+    marker.bringToFront(); // marker.setZIndexOffset(1000);
+}
+
+[mapmarkers, markers_within_keys] = init_and_populate_map('map', document.querySelectorAll('#allevents > li > a.event:not([data-latlon=""])'));
+
+function navigate(e)
+{
+    console.log(e.target.dataset);
+    const marker = mapmarkers[e.target.dataset.mapmarkerkey];
+    map.flyTo(marker.getLatLng());
+    marker_onclick({target : marker});
+    marker.openPopup();
+    return false;
+}
+
+</script>
+
+
+</body></html>
