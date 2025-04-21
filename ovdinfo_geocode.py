@@ -35,12 +35,15 @@ for prisoner in ovd['data']:
             print(url)
             geo = json.load(urllib.request.urlopen(url))
             print('Geo status:', geo['status'], ', results:', len(geo['results']))
+            assert 'OK' == geo['status']
             for geores in geo['results']:
                 print(address)
                 print(geores)
                 placeid = geores['place_id']
                 lat, lng = map(geores['geometry']['location'].get, ['lat', 'lng'])
                 # https://developers.google.com/maps/documentation/urls/get-started
+                # https://developers.google.com/maps/documentation/places/web-service/text-search
+                # curl -X POST -d '{"textQuery" : "Салават , ФКУ  ИК   2 УФСИН по Республике Башкортостан"}' -H 'Content-Type: application/json' -H "X-Goog-Api-Key: $GOOGLE_GEOCODING_API_KEY" -H 'X-Goog-FieldMask: places.displayName,places.formattedAddress,places.priceLevel' 'https://places.googleapis.com/v1/places:searchText'
                 mapsurl = 'https://google.com/maps/search/?' + urllib.parse.urlencode(dict(api = '1', query = f'{lat},{lng}', query_place_id = placeid))
                 print(mapsurl)
                 print()
@@ -50,4 +53,4 @@ for prisoner in ovd['data']:
             import sys; sys.exit(0)
 
 if args.cache_json_path:
-    json.dump(open(args.cache_json_path, 'w'), cache, ensure_ascii = False)
+    json.dump(open(args.cache_json_path, 'w'), cache, ensure_ascii = False, indent = 2, sort_keys = True)
