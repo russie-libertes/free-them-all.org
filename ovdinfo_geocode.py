@@ -7,6 +7,7 @@ import urllib.parse
 parser = argparse.ArgumentParser()
 parser.add_argument('--dotenv', default = '.env')
 parser.add_argument('--google-api-key')
+parser.add_argument('--verbose-http', action = 'store_true')
 parser.add_argument('--ovdinfo-dataset-url', default = 'https://api.repression.info/v1/data')
 parser.add_argument('--google-geocoding-api-url', default = 'https://maps.googleapis.com/maps/api/geocode/json?address={ADDRESS}&key={GOOGLE_API_KEY}', help = 'https://developers.google.com/maps/documentation/urls/get-started')
 parser.add_argument('--google-places-api-url', default = 'https://places.googleapis.com/v1/places:searchText', help = 'https://developers.google.com/maps/documentation/places/web-service/text-search')
@@ -24,7 +25,9 @@ if args.cache_json_path and os.path.exists(args.cache_json_path):
     with open(args.cache_json_path) as f:
         cache.update(json.load(f))
 
-import http.client; http.client.HTTPConnection.debuglevel = 1
+if args.verbose_http:
+    import http.client
+    http.client.HTTPConnection.debuglevel = 1
 
 ovd = json.load(urllib.request.urlopen(args.ovdinfo_dataset_url))
 print('Total prisoners:', ovd['total'])
@@ -34,9 +37,7 @@ for prisoner in ovd['data']:
     for address in filter(bool, addresses):
         address = address.translate({ord('«') : ' ', ord('»') : ' ', ord('"') : ' ', ord("№") : ' ', ord('|') : ','}).replace('  ', ' ')
         if address not in cache or args.cache_override:
-            url = args.google_places_api_url
-            print(url)
-            places = json.load(urllib.request.urlopen(urllib.request.Request(url, data = json.dumps(dict(textQuery = address)).encode('utf-8'), method = 'POST', headers = {'Content-Type': 'application/json', 'X-Goog-Api-Key' : secrets.get('GOOGLE_API_KEY', ''), 'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.googleMapsUri,places.location'})))
+            places = json.load(urllib.request.urlopen(urllib.request.Request(args.google_places_api_url, data = json.dumps(dict(textQuery = address)).encode('utf-8'), method = 'POST', headers = {'Content-Type': 'application/json', 'X-Goog-Api-Key' : secrets.get('GOOGLE_API_KEY', ''), 'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.googleMapsUri,places.location'})))
             print(places)
             
             url = args.google_geocoding_api_url.format(GOOGLE_API_KEY = secrets.get('GOOGLE_API_KEY', ''), ADDRESS = urllib.parse.quote_plus(address) )
