@@ -6,9 +6,10 @@ import urllib.parse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dotenv', default = '.env')
-parser.add_argument('--google-geocoding-api-key')
+parser.add_argument('--google-api-key')
 parser.add_argument('--ovdinfo-dataset-url', default = 'https://api.repression.info/v1/data')
-parser.add_argument('--google-geocoding-api-url', default = 'https://maps.googleapis.com/maps/api/geocode/json?address={ADDRESS}&key={GOOGLE_GEOCODING_API_KEY}')
+parser.add_argument('--google-geocoding-api-url', default = 'https://maps.googleapis.com/maps/api/geocode/json?address={ADDRESS}&key={GOOGLE_API_KEY}', help = 'https://developers.google.com/maps/documentation/urls/get-started')
+parser.add_argument('--google-places-api-url', default = 'https://places.googleapis.com/v1/places:searchText', help = 'https://developers.google.com/maps/documentation/places/web-service/text-search')
 parser.add_argument('--cache-json-path')
 parser.add_argument('--cache-override', action = 'store_true')
 args = parser.parse_args()
@@ -16,13 +17,15 @@ args = parser.parse_args()
 secrets = {}
 if args.dotenv and os.path.exists(args.dotenv):
     secrets.update({ line.strip().split('=', maxsplit = 1)[0] : line.strip().split('=', maxsplit = 1)[1].split('#')[0] for line in open(args.dotenv) if line.strip() and not line.strip().startswith('#')})
-if args.google_geocoding_api_key:
-    secrets['GOOGLE_GEOCODING_API_KEY'] = args.google_geocoding_api_key
+if args.google_api_key:
+    secrets['GOOGLE_API_KEY'] = args.google_api_key
 cache = {}
 if args.cache_json_path and os.path.exists(args.cache_json_path):
     with open(args.cache_json_path) as f:
         cache.update(json.load(f))
-    
+
+import http.client; http.client.HTTPConnection.debuglevel = 1
+
 ovd = json.load(urllib.request.urlopen(args.ovdinfo_dataset_url))
 print('Total prisoners:', ovd['total'])
 
@@ -31,9 +34,15 @@ for prisoner in ovd['data']:
     for address in filter(bool, addresses):
         address = address.translate({ord('«') : ' ', ord('»') : ' ', ord('"') : ' ', ord("№") : ' ', ord('|') : ','}).replace('  ', ' ')
         if address not in cache or args.cache_override:
-            url = args.google_geocoding_api_url.format(GOOGLE_GEOCODING_API_KEY = secrets.get('GOOGLE_GEOCODING_API_KEY', ''), ADDRESS = urllib.parse.quote_plus(address) )
+            url = args.google_places_api_url
+            print(url)
+            places = json.load(urllib.request.urlopen(urllib.request.Request(url, data = json.dumps(dict(textQuery = address)).encode('utf-8'), method = 'POST', headers = {'Content-Type': 'application/json', 'X-Goog-Api-Key' : secrets.get('GOOGLE_API_KEY', ''), 'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.googleMapsUri,places.location'})))
+            print(places)
+            
+            url = args.google_geocoding_api_url.format(GOOGLE_API_KEY = secrets.get('GOOGLE_API_KEY', ''), ADDRESS = urllib.parse.quote_plus(address) )
             print(url)
             geo = json.load(urllib.request.urlopen(url))
+
             print('Geo status:', geo['status'], ', results:', len(geo['results']))
             assert 'OK' == geo['status']
             for geores in geo['results']:
@@ -41,9 +50,6 @@ for prisoner in ovd['data']:
                 print(geores)
                 placeid = geores['place_id']
                 lat, lng = map(geores['geometry']['location'].get, ['lat', 'lng'])
-                # https://developers.google.com/maps/documentation/urls/get-started
-                # https://developers.google.com/maps/documentation/places/web-service/text-search
-                # curl -X POST -d '{"textQuery" : "Салават , ФКУ  ИК   2 УФСИН по Республике Башкортостан"}' -H 'Content-Type: application/json' -H "X-Goog-Api-Key: $GOOGLE_GEOCODING_API_KEY" -H 'X-Goog-FieldMask: places.displayName,places.formattedAddress,places.priceLevel' 'https://places.googleapis.com/v1/places:searchText'
                 mapsurl = 'https://google.com/maps/search/?' + urllib.parse.urlencode(dict(api = '1', query = f'{lat},{lng}', query_place_id = placeid))
                 print(mapsurl)
                 print()
