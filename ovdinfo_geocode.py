@@ -34,7 +34,6 @@ if args.cache_path and os.path.exists(args.cache_path):
             if rows:
                 fieldnames = rows[0]
                 cache.update({row[0] : row for row in rows[1:]})
-print('before', cache)
 
 if args.verbose_http:
     import http.client
@@ -58,17 +57,6 @@ for prisoner in ovd['data']:
                 if len(places['places']) == 1:
                     cache[address] = [address, mapsurl2]
             
-            print('after', cache)
-            if args.cache_path:
-                if args.cache_path.endswith('.json'):
-                    json.dump(open(args.cache_path, 'w'), cache, ensure_ascii = False, indent = 2, sort_keys = True)
-                elif args.cache_path.endswith('.tsv'):
-                    with open(args.cache_path, 'w') as f:
-                        writer = csv.writer(f, delimiter = '\t', quoting = csv.QUOTE_NONE, quotechar='\t')
-                        writer.writerow(fieldnames)
-                        writer.writerows(cache.values())
-            import sys; sys.exit(0)
-            
             #url = args.google_geocoding_api_url.format(GOOGLE_API_KEY = secrets.get('GOOGLE_API_KEY', ''), ADDRESS = urllib.parse.quote_plus(addresssafe) )
             #print(url)
             #geo = json.load(urllib.request.urlopen(url))
@@ -85,3 +73,11 @@ for prisoner in ovd['data']:
             #    if len(geo['results']) == 1:
             #        cache[address] = mapsurl
 
+if args.cache_path:
+    if args.cache_path.endswith('.json'):
+        json.dump(open(args.cache_path, 'w'), cache, ensure_ascii = False, indent = 2, sort_keys = True)
+    elif args.cache_path.endswith('.tsv'):
+        with open(args.cache_path, 'w') as f:
+            writer = csv.writer(f, delimiter = '\t', quoting = csv.QUOTE_NONE, quotechar='\t')
+            writer.writerow(fieldnames)
+            writer.writerows(cache.values())
