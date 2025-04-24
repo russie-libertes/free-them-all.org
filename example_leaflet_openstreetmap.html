@@ -1,4 +1,4 @@
-<html><body>
+<html><body onload="body_onload()">
 
 
 <link href="https://tile.openstreetmap.org/{z}/{x}/{y}.png" id="link_tiles" />
@@ -13,6 +13,7 @@
 -->
 <link rel="stylesheet" href="leaflet.css" />
 <script src="leaflet.js"></script>
+<script id="data_json" src="data.json" type="text/javascript"></script>
 
 <a hidden target="_blank" id="map_copyright" href="https://osm.org/copyright">map &copy; OpenStreetMap</a>
 
@@ -48,23 +49,22 @@
     <template id="popup">
         <div>
             <h3 id="place_name"></h3>
-            <h4 id="place_date"></h4>
+            <h4><a id="place_address"></a></h4>
         </div>
     </template>
 </div>
 
-<ul id="allevents">
-
+<!--
+<ul hidden id="allevents">
 <li><a class="event" href="#" onclick="return navigate(event);" data-latlon="48.866221,2.2676798" data-country="France" data-city="Paris" data-mapmarkerkey="france-paris-1" data-date="2024/03/17" data-time="08:00">Ambassade de la Fédération de Russie en France, 40-50 Bd Lannes, 75116, Paris, France</a></li>
-
-<li><a class="event" href="#" onclick="return navigate(event);" data-latlon="52.5161444,13.3789226" data-country="Germany" data-city="Berlin" data-mapmarkerkey="germany-berlin-1" data-date="2024/03/17" data-time="08:00">Botschaft der Russischen Föderation, Unter den Linden 63-65, 10117 Berlin, Germany</a></li>
 </ul>
+-->
 
 <script>
 
 map = null;
 
-function init_and_populate_map(id, events)
+function init_and_populate_map(id, data)
 {
     map = L.map(id);
     L.tileLayer(decodeURI(document.getElementById('link_tiles').href), {attribution: document.getElementById('map_copyright').outerHTML.replace('hidden', ''), maxZoom: 19 }).addTo(map);
@@ -76,19 +76,18 @@ function init_and_populate_map(id, events)
 
     let mapmarkers = {map : map};
     const markers = [];
-    for(const a of events)
+    for(const a of data)
     {
-        if(a.dataset.mapmarkerkey in mapmarkers)
+        if(a.mapmarkerkey in mapmarkers)
             continue;
 
-        const latlon = a.dataset.latlon.split(',').map(parseFloat);
+        const latlon = a.latlon.split(',').map(parseFloat);
         const marker = L.circleMarker(latlon, {radius: 5, stroke: false, className: a.parentElement.classList.contains('eventactive') ? 'markerupcoming' : 'markerpast'}).addTo(map);
         marker.bindPopup(format_event_popup(a).outerHTML);
         marker.on('click', marker_onclick);
 
-        marker.eventhash = a.dataset.eventhash;
-        marker.mapmarkerkey = a.dataset.mapmarkerkey;
-        mapmarkers[a.dataset.mapmarkerkey] = marker;
+        marker.mapmarkerkey = a.mapmarkerkey;
+        mapmarkers[a.mapmarkerkey] = marker;
         markers.push(marker);
     }
 
@@ -98,20 +97,20 @@ function init_and_populate_map(id, events)
     const [lonl, lonr] = quantiles(markers.map(marker => marker.getLatLng().lng), 0.1);
     
     const markers_within = markers.filter(marker => latl <= marker.getLatLng().lat && marker.getLatLng().lat <= latr && lonl <= marker.getLatLng().lng && marker.getLatLng().lng <= lonr);
-    const markers_within_keys = markers_within.map(marker => marker.mapmarkerkey);
     
     map.fitBounds(L.latLngBounds( markers_within.map(marker => ([marker.getLatLng().lat, marker.getLatLng().lng])) ));
     
     //map.setView([20, 0], 2);
 
-    return [mapmarkers, markers_within_keys];
+    return mapmarkers;
 }
 
 function format_event_popup(a)
 {
     const elem = document.getElementById('popup').content.cloneNode(true);
-    elem.querySelector('#place_name').innerText = [a.dataset.city, a.dataset.country].filter(s => s != '').join(', ');
-    elem.querySelector('#place_date').innerText = [a.dataset.date, a.dataset.time].filter(s => s != '').join(', ');
+    elem.querySelector('#place_name').innerText = a.name;
+    elem.querySelector('#place_address').innerText = a.address;
+    elem.querySelector('#place_address').href = a.url;
     return elem.firstElementChild;
 }
 
@@ -129,16 +128,14 @@ function marker_onclick(e)
     marker.bringToFront(); // marker.setZIndexOffset(1000);
 }
 
-[mapmarkers, markers_within_keys] = init_and_populate_map('map', document.querySelectorAll('#allevents > li > a.event:not([data-latlon=""])'));
+var mapmarkers = [];
 
-function navigate(e)
+async function body_onload()
 {
-    console.log(e.target.dataset);
-    const marker = mapmarkers[e.target.dataset.mapmarkerkey];
-    map.flyTo(marker.getLatLng());
-    marker_onclick({target : marker});
-    marker.openPopup();
-    return false;
+    const src = document.getElementById('datajson').src;
+    const data = await fetch(src).then(r => r.json());
+    mapmarkers = init_and_populate_map('map', data);
+
 }
 
 </script>
