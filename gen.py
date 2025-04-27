@@ -10,7 +10,7 @@ parser.add_argument('--ovd-info-dataset-url', default = 'https://api.repression.
 parser.add_argument('--ovd-info-addresses-csv', default = 'data/prisons_ovd.csv')
 parser.add_argument('--output-json', default = 'data.json')
 parser.add_argument('--output-js', default = 'data.js')
-parser.add_argument('--output-dir', default = './_site/')
+parser.add_argument('--output-dir', default = '.')
 args = parser.parse_args()
 
 ovd = json.load(urllib.request.urlopen(args.ovd_info_dataset_url))
@@ -21,7 +21,7 @@ addresses = {row[0] : dict(name = row[0], mapmarkerkey = row[0], address = row[1
 
 sanitize_addr = lambda addr: addr.translate({ord('"') : '', ord('\u00A0'): ' ', ord('\xa0') : ' ', ord('\r'): ' ', ord('\n'): ' '}).strip()
    
-data = [addresses[sanitized_addr] for prisoner in ovd['data'] for addr in set(prisoner["detention_center_ru"]) | set([prisoner["restraint_measure_location_ru"]]) | set(prisoner["penal_facility_ru"]) | set([prisoner["imprisonment_location_ru"]]) for sanitized_addr in filter(bool, [sanitize_addr(addr)]) if sanitized_addr in addresses] 
+data = [dict(prisoner, **addresses[sanitized_addresses[0]]) for prisoner in ovd['data'] for sanitized_addresses in [list(filter(bool, map(sanitize_addr, prisoner["detention_center_ru"] +[prisoner["restraint_measure_location_ru"]] + prisoner["penal_facility_ru"] + [prisoner["imprisonment_location_ru"]])))] if sanitized_addresses and sanitized_addresses[0] in addresses] 
 
 os.makedirs(args.output_dir, exist_ok = True)
 for basename in ['index.html', 'leaflet.js', 'leaflet.css']:
