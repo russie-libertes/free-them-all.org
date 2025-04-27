@@ -24,7 +24,7 @@ sanitize_addr = lambda addr: addr.translate({ord('"') : '', ord('\u00A0'): ' ', 
 data = [dict(prisoner, **addresses[sanitized_addresses[0]]) for prisoner in ovd['data'] for sanitized_addresses in [list(filter(bool, map(sanitize_addr, prisoner["detention_center_ru"] +[prisoner["restraint_measure_location_ru"]] + prisoner["penal_facility_ru"] + [prisoner["imprisonment_location_ru"]])))] if sanitized_addresses and sanitized_addresses[0] in addresses] 
 
 os.makedirs(args.output_dir, exist_ok = True)
-for basename in ['index.html', 'leaflet.js', 'leaflet.css']:
+for basename in ['index.html', 'leaflet.js', 'leaflet.css'] * (args.output_dir != '.'):
     open(os.path.join(args.output_dir, basename), 'w').write(open(basename).read())
 json.dump(data, open(os.path.join(args.output_dir, args.output_json), 'w'), ensure_ascii = False, indent = 2)
 open(os.path.join(args.output_dir, args.output_js), 'w').write('data = ' + json.dumps(data, ensure_ascii = False, indent = 2))
