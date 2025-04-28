@@ -48,6 +48,7 @@
 <div id="map">
     <template id="popup">
         <div>
+            <h2 id="name_ru"></h2>
             <h3 id="place_name"></h3>
             <h4><a id="place_address" target="_blank"></a></h4>
         </div>
@@ -108,6 +109,7 @@ function init_and_populate_map(id, data)
 function format_event_popup(a)
 {
     const elem = document.getElementById('popup').content.cloneNode(true);
+    elem.querySelector('#name_ru').innerText = a.name_ru;
     elem.querySelector('#place_name').innerText = a.name;
     elem.querySelector('#place_address').innerText = a.address;
     elem.querySelector('#place_address').href = a.url;
