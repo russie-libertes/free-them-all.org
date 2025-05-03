@@ -56,7 +56,8 @@ body
     <template id="popup">
         <div>
             <h2 id="name_ru"></h2>
-            <h3 id="case_name_ru"></h3>
+            <h3 id="case_name"></h3>
+            <h3 id="persecution_place"></h3>
             <h3 id="place_name"></h3>
             <h4><a id="place_address" target="_blank"></a></h4>
         </div>
@@ -116,7 +117,8 @@ function format_event_popup(a)
 {
     const elem = document.getElementById('popup').content.cloneNode(true);
     elem.querySelector('#name_ru').innerText = a.name_ru;
-    elem.querySelector('#case_name_ru').innerText = a.case_name_ru + ' (' + a.persecution_articles_criminal_code_ru.join(', ') + ')';
+    elem.querySelector('#case_name').innerText = a.persecution_articles_criminal_code_ru.join(', ') + ' (' + a.case_name_ru + ')';
+    elem.querySelector('#persecution_place').innerText = a.persecution_city_ru.join(', ') + a.persecution_region_ru.join(', ');
     elem.querySelector('#place_name').innerText = a.name;
     elem.querySelector('#place_address').innerText = a.address;
     elem.querySelector('#place_address').href = a.url;
