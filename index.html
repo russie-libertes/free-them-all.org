@@ -119,7 +119,7 @@ function format_event_popup(a)
     const elem = document.getElementById('popup').content.cloneNode(true);
     elem.querySelector('#name').innerText = a.name_ru;
     elem.querySelector('#birth_year').innerText = a.birth_year.toString();
-    elem.querySelector('#persecution_place').innerText = a.persecution_city_ru.join(', ') + a.persecution_region_ru.join(', ');
+    elem.querySelector('#persecution_place').innerText = (a.persecution_city_ru || []).join(', ') + ' ' + (a.persecution_region_ru || []).join(', ');
     elem.querySelector('#case_name').innerText = a.persecution_articles_criminal_code_ru.join(', ') + ' (' + a.case_name_ru + ')';
     elem.querySelector('#place_name').innerText = a.name;
     elem.querySelector('#place_address').innerText = a.address;
