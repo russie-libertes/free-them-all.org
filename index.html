@@ -58,8 +58,6 @@ body
             <h2 id="name"></h2>
             <h3 id="origin"></h3>
             <h3 id="case_name"></h3>
-            <h3 id="persecution_place"></h3>
-            <h3 id="place_name"></h3>
             <h4><a id="place_address" target="_blank"></a></h4>
         </div>
     </template>
@@ -120,8 +118,7 @@ function format_event_popup(a)
     elem.querySelector('#name').innerText = a.name_ru;
     elem.querySelector('#origin').innerText = [a.birth_year.toString(), (a.persecution_city_ru || []).join(', '), (a.persecution_region_ru || []).join(', ')].join(', ');
     elem.querySelector('#case_name').innerText = a.persecution_articles_criminal_code_ru.join(', ') + ' (' + a.case_name_ru + ')';
-    elem.querySelector('#place_name').innerText = a.name;
-    elem.querySelector('#place_address').innerText = a.address;
+    elem.querySelector('#place_address').innerText = [a.name, a.address].join(', ');
     elem.querySelector('#place_address').href = a.url;
     return elem.firstElementChild;
 }
