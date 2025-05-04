@@ -116,7 +116,7 @@ function format_event_popup(a)
 {
     const elem = document.getElementById('popup').content.cloneNode(true);
     elem.querySelector('#name').innerText = a.name_ru;
-    elem.querySelector('#origin').innerText = [a.birth_year.toString(), (a.persecution_city_ru || []).join(', '), (a.persecution_region_ru || []).join(', ')].join(', ');
+    elem.querySelector('#origin').innerText = [a.birth_year.toString()].cooncat(a.persecution_city_ru || []).concat(a.persecution_region_ru || []).filter(x => x).join(', ');
     elem.querySelector('#case_name').innerText = [a.case_name_ru, a.persecution_articles_criminal_code_ru.join(', ')].filter(x => x).join(': ');
     elem.querySelector('#place_address').innerText = [a.name, a.address].join(', ');
     elem.querySelector('#place_address').href = a.url;
