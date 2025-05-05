@@ -1,25 +1,5 @@
-<html><body onload="body_onload()">
-
-
-<link href="https://tile.openstreetmap.org/{z}/{x}/{y}.png" id="link_tiles" />
-
-<!--
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
-   integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
-   crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
-   integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
-   crossorigin=""></script>
--->
-<link rel="stylesheet" href="leaflet.css" />
-<script src="leaflet.js"></script>
-
-<script>var data = null;</script>
-<script id="data_json" src="data.js" type="text/javascript"></script>
-
-<a hidden target="_blank" id="map_copyright" href="https://osm.org/copyright">map &copy; OpenStreetMap</a>
-
-
+<html>
+<head>
 <style>
 .markerhighlighted
 {
@@ -43,6 +23,12 @@
     width: 100%; 
 }
 
+#card
+{
+    border-style: solid;
+    border-width; 1px;
+}
+
 body
 {
     margin: 0
@@ -50,6 +36,27 @@ body
 
 </style>
 
+</head>
+<body onload="body_onload()">
+
+
+<link href="https://tile.openstreetmap.org/{z}/{x}/{y}.png" id="link_tiles" />
+<!--
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+   integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+   crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+   integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+   crossorigin=""></script>
+-->
+<link rel="stylesheet" href="leaflet.css" />
+<script src="leaflet.js"></script>
+
+
+<script>var data = null;</script>
+<script id="data_json" src="data.js" type="text/javascript"></script>
+
+<a hidden target="_blank" id="map_copyright" href="https://osm.org/copyright">map &copy; OpenStreetMap</a>
     
 
 <div id="map">
@@ -61,6 +68,13 @@ body
             <h4><a id="place_address" target="_blank"></a></h4>
         </div>
     </template>
+</div>
+
+<div id="card">
+    <h2 id="card_name"></h2>
+    <h3 id="card_origin"></h3>
+    <h3 id="card_case_name"></h3>
+    <h4><a id="card_place_address" target="_blank"></a></h4>
 </div>
 
 <!--
@@ -115,12 +129,13 @@ function init_and_populate_map(id, data)
 function format_event_popup(a)
 {
     const elem = document.getElementById('popup').content.cloneNode(true);
-    elem.querySelector('#name').innerText = a.name_ru;
-    elem.querySelector('#origin').innerText = [a.birth_year.toString()].concat(a.persecution_city_ru || []).concat(a.persecution_region_ru || []).filter(x => x).join(', ');
-    elem.querySelector('#case_name').innerText = [a.case_name_ru, a.persecution_articles_criminal_code_ru.join(', ')].filter(x => x).join(': ');
-    elem.querySelector('#place_address').innerText = a.name;
-    elem.querySelector('#place_address').href = a.url;
-    elem.querySelector('#place_address').title = a.address;
+    document.getElementById('card_name').innerText = elem.querySelector('#name').innerText = a.name_ru;
+    document.getElementById('card_origin').innerText = elem.querySelector('#origin').innerText = [a.birth_year.toString()].concat(a.persecution_city_ru || []).concat(a.persecution_region_ru || []).filter(x => x).join(', ');
+    document.getElementById('card_case_name').innerText = elem.querySelector('#case_name').innerText = [a.case_name_ru, a.persecution_articles_criminal_code_ru.join(', ')].filter(x => x).join(': ');
+    document.getElementById('card_place_address').innerText = elem.querySelector('#place_address').innerText = a.name;
+    document.getElementById('card_place_address').href = elem.querySelector('#place_address').href = a.url;
+    document.getElementById('card_place_address').title = elem.querySelector('#place_address').title = a.address;
+    
     return elem.firstElementChild;
 }
 
