@@ -101,8 +101,11 @@ function init_and_populate_map(id, data)
 
     let mapmarkers = {map : map};
     const markers = [];
+    let i = 0;
     for(const a of data)
     {
+        const mapmarkerkey = (i++).toString();
+        
         if(a.mapmarkerkey in mapmarkers)
             continue;
 
@@ -111,8 +114,8 @@ function init_and_populate_map(id, data)
         marker.bindPopup(format_event_popup(a).outerHTML);
         marker.on('click', marker_onclick);
 
-        marker.mapmarkerkey = a.mapmarkerkey;
-        mapmarkers[a.mapmarkerkey] = marker;
+        marker.mapmarkerkey = mapmarkerkey;
+        mapmarkers[mapmarkerkey] = marker;
         markers.push(marker);
     }
 
@@ -133,14 +136,25 @@ function init_and_populate_map(id, data)
 function format_event_popup(a)
 {
     const elem = document.getElementById('popup').content.cloneNode(true);
-    document.getElementById('card_name').innerText = elem.querySelector('#name').innerText = a.name_ru;
-    document.getElementById('card_origin').innerText = elem.querySelector('#origin').innerText = [a.birth_year.toString()].concat(a.persecution_city_ru || []).concat(a.persecution_region_ru || []).filter(x => x).join(', ');
-    document.getElementById('card_case_name').innerText = elem.querySelector('#case_name').innerText = [a.case_name_ru, a.persecution_articles_criminal_code_ru.join(', ')].filter(x => x).join(': ');
-    document.getElementById('card_place_address').innerText = elem.querySelector('#place_address').innerText = a.name;
-    document.getElementById('card_place_address').href = elem.querySelector('#place_address').href = a.url;
-    document.getElementById('card_place_address').title = elem.querySelector('#place_address').title = a.address;
+    elem.querySelector('#name').innerText = a.name_ru;
+    elem.querySelector('#origin').innerText = [a.birth_year.toString()].concat(a.persecution_city_ru || []).concat(a.persecution_region_ru || []).filter(x => x).join(', ');
+    elem.querySelector('#case_name').innerText = [a.case_name_ru, a.persecution_articles_criminal_code_ru.join(', ')].filter(x => x).join(': ');
+    elem.querySelector('#place_address').innerText = a.name;
+    elem.querySelector('#place_address').href = a.url;
+    elem.querySelector('#place_address').title = a.address;
     
     return elem.firstElementChild;
+}
+
+function navigate(idx)
+{
+    const a = data[idx];
+    document.getElementById('card_name').innerText = a.name_ru;
+    document.getElementById('card_origin').innerText = [a.birth_year.toString()].concat(a.persecution_city_ru || []).concat(a.persecution_region_ru || []).filter(x => x).join(', ');
+    document.getElementById('card_case_name').innerText = [a.case_name_ru, a.persecution_articles_criminal_code_ru.join(', ')].filter(x => x).join(': ');
+    document.getElementById('card_place_address').innerText = a.name;
+    document.getElementById('card_place_address').href = a.url;
+    document.getElementById('card_place_address').title = a.address;
 }
 
 function marker_onclick(e)
@@ -155,6 +169,9 @@ function marker_onclick(e)
         L.DomUtil.addClass(_icon, 'markerhighlighted');
     
     marker.bringToFront(); // marker.setZIndexOffset(1000);
+    
+    const idx = parseInt(marker.mapmarkerkey);
+    navigate(idx);
 }
 
 async function body_onload()
