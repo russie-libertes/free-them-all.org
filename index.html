@@ -138,7 +138,7 @@ function format_event_popup(a)
     const elem = document.getElementById('popup').content.cloneNode(true);
     elem.querySelector('#name').innerText = a.name_ru;
     elem.querySelector('#origin').innerText = [a.birth_year.toString()].concat(a.persecution_city_ru || []).concat(a.persecution_region_ru || []).filter(x => x).join(', ');
-    elem.querySelector('#case_name').innerText = [a.case_name_ru, a.persecution_articles_criminal_code_ru.join(', ')].filter(x => x).join(': ');
+    elem.querySelector('#case_name').innerText = [a.case_name_ru, (a.persecution_articles_criminal_code_ru || []).join(', ')].filter(x => x).join(': ');
     elem.querySelector('#place_address').innerText = a.name;
     elem.querySelector('#place_address').href = a.url;
     elem.querySelector('#place_address').title = a.address;
@@ -151,7 +151,7 @@ function navigate(idx)
     const a = data[idx];
     document.getElementById('card_name').innerText = a.name_ru;
     document.getElementById('card_origin').innerText = [a.birth_year.toString()].concat(a.persecution_city_ru || []).concat(a.persecution_region_ru || []).filter(x => x).join(', ');
-    document.getElementById('card_case_name').innerText = [a.case_name_ru, a.persecution_articles_criminal_code_ru.join(', ')].filter(x => x).join(': ');
+    document.getElementById('card_case_name').innerText = [a.case_name_ru, (a.persecution_articles_criminal_code_ru || []).join(', ')].filter(x => x).join(': ');
     document.getElementById('card_place_address').innerText = a.name;
     document.getElementById('card_place_address').href = a.url;
     document.getElementById('card_place_address').title = a.address;
