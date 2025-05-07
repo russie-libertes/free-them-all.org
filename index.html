@@ -207,6 +207,9 @@ async function body_onload()
     }
     
     init_and_populate_map('map', data);
+    
+    const idx = Math.min(Math.max(0, Math.floor(Math.random() * data.length)), data.length - 1);
+    navigate(idx);
 }
 
 </script>
