@@ -100,10 +100,10 @@ body
     </div>
 
     <div id="card">
-        <h2 id="card_name"></h2>
-        <h3 id="card_origin"></h3>
-        <h3 id="card_case_name"></h3>
-        <h4><a id="card_place_address" target="_blank"></a></h4>
+        <h2 id="name"></h2>
+        <h3 id="origin"></h3>
+        <h3 id="case_name"></h3>
+        <h4><a id="place_address" target="_blank"></a></h4>
     </div>
 
 <!--
@@ -136,7 +136,7 @@ function init_and_populate_map(id, data)
 
         const latlon = a.latlon.split(',').map(parseFloat);
         const marker = L.circleMarker(latlon, {radius: 5, stroke: false, className: 'markerupcoming'}).addTo(map);
-        marker.bindPopup(format_event_popup(a).outerHTML);
+        marker.bindPopup(format_event_popup(a, document.getElementById('popup').content.cloneNode(true)).outerHTML);
         marker.on('click', marker_onclick);
 
         marker.mapmarkerkey = mapmarkerkey;
@@ -158,11 +158,10 @@ function init_and_populate_map(id, data)
     return mapmarkers;
 }
 
-function format_event_popup(a)
+function format_event_popup(a, elem)
 {
-    const elem = document.getElementById('popup').content.cloneNode(true);
     elem.querySelector('#name').innerText = a.name_ru;
-    elem.querySelector('#origin').innerText = [a.birth_year.toString()].concat(a.persecution_city_ru || []).concat(a.persecution_region_ru || []).filter(x => x).join(', ');
+    elem.querySelector('#origin').innerText = [a.birth_year.toString() + ' г.р.'].concat(a.persecution_city_ru || []).concat(a.persecution_region_ru || []).filter(x => x).join(', ');
     elem.querySelector('#case_name').innerText = [a.case_name_ru, (a.persecution_articles_criminal_code_ru || []).join(', ')].filter(x => x).join(': ');
     elem.querySelector('#place_address').innerText = a.name;
     elem.querySelector('#place_address').href = a.url;
@@ -174,12 +173,7 @@ function format_event_popup(a)
 function navigate(idx)
 {
     const a = data[idx];
-    document.getElementById('card_name').innerText = a.name_ru;
-    document.getElementById('card_origin').innerText = [a.birth_year.toString()].concat(a.persecution_city_ru || []).concat(a.persecution_region_ru || []).filter(x => x).join(', ');
-    document.getElementById('card_case_name').innerText = [a.case_name_ru, (a.persecution_articles_criminal_code_ru || []).join(', ')].filter(x => x).join(': ');
-    document.getElementById('card_place_address').innerText = a.name;
-    document.getElementById('card_place_address').href = a.url;
-    document.getElementById('card_place_address').title = a.address;
+    format_event_popup(a, document.getElementById('card'));
 }
 
 function marker_onclick(e)
