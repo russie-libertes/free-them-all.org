@@ -2,6 +2,12 @@
 <!-- 
 https://github.com/vadimkantorov/eventmap/blob/gh-pages/_includes/script.js
 https://gist.github.com/vadimkantorov/f0c9bea4dec6808b027e118d7a981c38
+https://ovd.info/politpressing
+https://data.ovd.info/metodologiya-bazy-politicheski-motivirovannykh-ugolovnykh-presledovaniy-0?_gl=1*1rixraw*_ga*MTg3Njc4MTQwNC4xNzQ2MjgyNTk0*_ga_J7DH9NKJ0R*czE3NDY1MzU0NzYkbzMkZzEkdDE3NDY1MzU1MjUkajExJGwwJGgw#1
+https://observablehq.com/d/3dfc2fcf987505cb
+https://airtable.com/appM0RUv3AZgjWJXX/shrkpH03i7YXr1M1G/tbldEW4S6zyMPb8MZ?viewControls=on
+https://lookerstudio.google.com/u/0/reporting/499f679c-d1aa-4b9f-8f3a-bbfa970c7753
+
 -->
 <head>
 <style>
@@ -38,48 +44,67 @@ body
     margin: 0
 }
 
+.topbar {
+    height: 60px;
+
+    position: sticky; 
+    top: 0; 
+    width: 100%; 
+    z-index: 999; 
+    background-color: gray; 
+    color: white;
+}
+
+.topbar h1 {
+    margin-top: 0;
+    display: inline;
+}
+            
 </style>
 
 </head>
 <body onload="body_onload()">
 
 
-<link href="https://tile.openstreetmap.org/{z}/{x}/{y}.png" id="link_tiles" />
-<!--
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
-   integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
-   crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
-   integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
-   crossorigin=""></script>
--->
-<link rel="stylesheet" href="leaflet.css" />
-<script src="leaflet.js"></script>
+    <link href="https://tile.openstreetmap.org/{z}/{x}/{y}.png" id="link_tiles" />
+    <!--
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+       integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+       crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+       integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+       crossorigin=""></script>
+    -->
+    <link rel="stylesheet" href="leaflet.css" />
+    <script src="leaflet.js"></script>
 
 
-<script>var data = null;</script>
-<script id="data_json" src="data.js" type="text/javascript"></script>
+    <script>var data = null;</script>
+    <script id="data_json" src="data.js" type="text/javascript"></script>
 
-<a hidden target="_blank" id="map_copyright" href="https://osm.org/copyright">map &copy; OpenStreetMap</a>
+    <a hidden target="_blank" id="map_copyright" href="https://osm.org/copyright">map &copy; OpenStreetMap</a>
+        
+    <div class="topbar">
+        <h1>Free Them All</h1>
+    </div>
     
+    <div id="map">
+        <template id="popup">
+            <div>
+                <h2 id="name"></h2>
+                <h3 id="origin"></h3>
+                <h3 id="case_name"></h3>
+                <h4><a id="place_address" target="_blank"></a></h4>
+            </div>
+        </template>
+    </div>
 
-<div id="map">
-    <template id="popup">
-        <div>
-            <h2 id="name"></h2>
-            <h3 id="origin"></h3>
-            <h3 id="case_name"></h3>
-            <h4><a id="place_address" target="_blank"></a></h4>
-        </div>
-    </template>
-</div>
-
-<div id="card">
-    <h2 id="card_name"></h2>
-    <h3 id="card_origin"></h3>
-    <h3 id="card_case_name"></h3>
-    <h4><a id="card_place_address" target="_blank"></a></h4>
-</div>
+    <div id="card">
+        <h2 id="card_name"></h2>
+        <h3 id="card_origin"></h3>
+        <h3 id="card_case_name"></h3>
+        <h4><a id="card_place_address" target="_blank"></a></h4>
+    </div>
 
 <!--
 <ul hidden id="allevents">
