@@ -174,13 +174,17 @@ function format_event_popup(a, elem)
 
 function get_hash()
 {
+    const random_idx = Math.min(Math.max(0, Math.floor(Math.random() * data.length)), data.length - 1);
     try
     {
-        return parseInt((window.location.hash || '').replaceAll('#',''));
+        const idx = parseInt((window.location.hash || '').replaceAll('#',''));
+        if(idx != idx)
+            return random_idx;
+        return idx;
     }
     catch
     {
-        return Math.min(Math.max(0, Math.floor(Math.random() * data.length)), data.length - 1);
+        return random_idx;
     }
 }
 
