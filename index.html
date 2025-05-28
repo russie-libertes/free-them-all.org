@@ -1,6 +1,7 @@
 <html>
 <!-- 
 https://github.com/vadimkantorov/eventmap/blob/gh-pages/_includes/script.js
+https://github.com/vadimkantorov/eventmap/blob/gh-pages/_layouts/events.html
 https://gist.github.com/vadimkantorov/f0c9bea4dec6808b027e118d7a981c38
 https://ovd.info/politpressing
 https://www.politzek.org/prisoners
@@ -66,7 +67,7 @@ body
 </style>
 
 </head>
-<body onload="body_onload()">
+<body onload="body_onload()" onhashchange="navigate(get_hash())">
 
 
     <link href="https://tile.openstreetmap.org/{z}/{x}/{y}.png" id="link_tiles" />
@@ -109,13 +110,9 @@ body
         <h4><a id="place_address" target="_blank"></a></h4>
     </div>
 
-<!--
-<ul hidden id="allevents">
-<li><a class="event" href="#" onclick="return navigate(event);" data-latlon="48.866221,2.2676798" data-country="France" data-city="Paris" data-mapmarkerkey="france-paris-1" data-date="2024/03/17" data-time="08:00">Ambassade de la Fédération de Russie en France, 40-50 Bd Lannes, 75116, Paris, France</a></li>
-</ul>
--->
+    <script>
 
-<script>
+var mapmarkers = null;
 
 function init_and_populate_map(id, data)
 {
@@ -130,11 +127,13 @@ function init_and_populate_map(id, data)
     let mapmarkers = {map : map};
     const markers = [];
     let i = 0;
-    for(const a of data)
+    for(let a of data)
     {
-        const mapmarkerkey = (i++).toString();
+        const mapmarkerkey = a.mapmarkerkey = (i++).toString();
+        //const mapmarkerkey = a.mapmarkerkey || (i++).toString();
+        //if(!a.mapmarkerkey) a.mapmarkerkey = mapmarkerkey;
         
-        if(a.mapmarkerkey in mapmarkers)
+        if(mapmarkerkey in mapmarkers)
             continue;
 
         const latlon = a.latlon.split(',').map(parseFloat);
@@ -173,13 +172,35 @@ function format_event_popup(a, elem)
     return elem.firstElementChild;
 }
 
-function navigate(idx)
+function get_hash()
+{
+    try
+    {
+        return parseInt((window.location.hash || '').replaceAll('#',''));
+    }
+    catch
+    {
+        return Math.min(Math.max(0, Math.floor(Math.random() * data.length)), data.length - 1);
+    }
+}
+
+function navigate(idx, replace_url = false)
 {
     const a = data[idx];
     format_event_popup(a, document.getElementById('card'));
+
+    /*
+    if(replace_url)
+    {
+        const mapmarkerkey = a.mapmarkerkey;
+        window.history.pushState({}, document.title, window.location.pathname + '?' + mapmarkerkey);
+    } 
+    */
+    const marker = mapmarkers[a.mapmarkerkey];
+    marker_onclick({target: marker}, false);
 }
 
-function marker_onclick(e)
+function marker_onclick(e, replace_url = true)
 {
     const marker = e.target;
     let _icon = document.querySelector('.markerhighlighted');
@@ -192,8 +213,14 @@ function marker_onclick(e)
     
     marker.bringToFront(); // marker.setZIndexOffset(1000);
     
-    const idx = parseInt(marker.mapmarkerkey);
-    navigate(idx);
+    if(replace_url)
+    {
+        window.location.hash = '#' + marker.mapmarkerkey;
+    }
+    else
+    {
+        marker.openPopup();
+    }
 }
 
 async function body_onload()
@@ -203,13 +230,19 @@ async function body_onload()
         data = await fetch(document.getElementById('data_json').src).then(r => r.json());
     }
     
-    init_and_populate_map('map', data);
+    if(mapmarkers == null)
+    {
+        mapmarkers = init_and_populate_map('map', data);
+    }
     
-    const idx = Math.min(Math.max(0, Math.floor(Math.random() * data.length)), data.length - 1);
-    navigate(idx);
+    navigate(get_hash(), false);
 }
 
-</script>
+//navigation.addEventListener('navigate', () => {
+//  console.log('navigate event', window.location);
+//});
+
+    </script>
 
 
 </body></html>
